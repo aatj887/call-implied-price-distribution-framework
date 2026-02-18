@@ -1,7 +1,5 @@
 import numpy as np
-from scipy.stats import lognorm
-from scipy.optimize import minimize
-from scipy.integrate import quad
+from scipy.stats import lognorm, norm
 
 def lognormal_pdf(s:float, a:float, b:float):
     """
@@ -36,39 +34,40 @@ def implied_mean(a1, b1, a2, b2, q):
     """
     return q * np.exp(a1 + 0.5*b1**2) + (1-q) * np.exp(a2 + 0.5*b2**2)
 
+def _call_lognormal(X, r, tau, a, b):
+    """
+    Closed-form European call price when ln(S_T) ~ N(a, b^2).
+    """
+
+    if b < 1e-10:
+        F = np.exp(a)
+        return np.exp(-r*tau) * max(F - X, 0.0)
+
+    d1 = (a - np.log(X) + b*b) / b
+    d2 = d1 - b
+
+    return np.exp(-r*tau) * (
+        np.exp(a + 0.5*b*b) * norm.cdf(d1)
+        - X * norm.cdf(d2)
+    )
+
 def call_price_model(X, r, tau, a1, b1, a2, b2, q):
     """
-    Call price formula, defined as the sum of all weighted possible payoffs from holding a call today using the mixed pdf.
-    
-    :param X: Strike Price of the call option.
-    :param r: Risk-free rate (should always be the rate generated in the data sources).
-    :param tau: Time to maturity in years.
-    :param a1: Mean of log-price for the first distribution.
-    :param b1: Standard Deviation of log-price for the first distribution.
-    :param a2: Mean of log-price for the second distribution.
-    :param b2: Standard Deviation of log-price for the second distribution.
-    :param q: Weight assigned to the first distribution (the second will have weight 1-q).
+    Call price under a two-lognormal mixture.
     """
-    integrand = lambda s: (s - X) * mixture_pdf(s, a1, b1, a2, b2, q)
-    value, _ = quad(integrand, X, np.inf)
-    return np.exp(-r * tau) * value
 
-def put_price_model(X, r, tau, a1, b1, a2, b2, q):
+    return (
+        q * _call_lognormal(X, r, tau, a1, b1)
+        + (1 - q) * _call_lognormal(X, r, tau, a2, b2)
+    )
+
+def put_price_model(X, r, tau, a1, b1, a2, b2, q, S0):
     """
-    Put price formula, defined as the sum of all weighted possible payoffs from holding a call today using the mixed pdf.
-    
-    :param X: Strike Price of the call option.
-    :param r: Risk-free rate (should always be the rate generated in the data sources).
-    :param tau: Time to maturity in years.
-    :param a1: Mean of log-price for the first distribution.
-    :param b1: Standard Deviation of log-price for the first distribution.
-    :param a2: Mean of log-price for the second distribution.
-    :param b2: Standard Deviation of log-price for the second distribution.
-    :param q: Weight assigned to the first distribution (the second will have weight 1-q).
+    Put price via put-call parity.
     """
-    integrand = lambda s: (X - s) * mixture_pdf(s, a1, b1, a2, b2, q)
-    val, _ = quad(integrand, 0, X)
-    return np.exp(-r * tau) * val
+
+    call = call_price_model(X, r, tau, a1, b1, a2, b2, q)
+    return call - S0 + X*np.exp(-r*tau)
 
 
 def objective_from_chain(theta, chain, r):
@@ -81,6 +80,10 @@ def objective_from_chain(theta, chain, r):
     """
 
     a1, b1, a2, b2, q = theta
+
+    # enforce ordering (identifiability constraint)
+    if a1 > a2:
+        return 1e10
 
     tau = chain['dte'].iloc[0] / 365
     S0  = chain['underlying_price'].iloc[0]
@@ -95,7 +98,7 @@ def objective_from_chain(theta, chain, r):
         if row['option_type'].lower() == 'call':
             model_price = call_price_model(X, r, tau, a1, b1, a2, b2, q)
         else:
-            model_price = put_price_model(X, r, tau, a1, b1, a2, b2, q)
+            model_price = put_price_model(X, r, tau, a1, b1, a2, b2, q, S0)
 
         error += (model_price - market_price)**2
 
