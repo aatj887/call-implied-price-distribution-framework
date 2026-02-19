@@ -39,6 +39,8 @@ st.header('A WebApp to Analyze Implied Future Price Distributions from Option Ch
 st.markdown("""
 This application is based on the minimization framework outlined in the paper 'Probability distributions of future asset prices implied by
 option prices' by Bhupinder Bahra.
+            
+To see the methodology and code details, please refer to the [GitHub Repository](https://github.com/aatj887/call-implied-price-distribution-framework).
 """)
 
 col1, col2 = st.columns([3, 1])
