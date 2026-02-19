@@ -17,6 +17,8 @@ from scipy.integrate import quad
 from datetime import datetime, timedelta
 from openbb import obb
 
+obb.account.sync_pkg_install()
+
 try:
     from src.data_sources.options_openbb import get_option_chains
     from src.modelling.minimization import mixture_pdf
