@@ -1,4 +1,4 @@
-from openbb import obb
+from openbb_yfinance.models.options_chains import YFinanceOptionsChainsFetcher
 import pandas as pd
 
 # Get option chains for a specific stock for a specific date
@@ -13,10 +13,12 @@ def get_option_chains(symbol: str) -> pd.DataFrame:
     Returns:
     pd.DataFrame: A DataFrame containing the option chains for the specified stock.
     """
-    # Get the option chains for the specified stock and date
-    option_chains = obb.derivatives.options.chains(symbol=symbol).to_dataframe()
-
-    # Convert the result to a DataFrame
+    # Initialize the specific fetcher you need
+    fetcher = YFinanceOptionsChainsFetcher()
     
-
-    return option_chains
+    # Fetch the data using the provider directly
+    # 'test_callable' is the standard method for direct execution in v4
+    result = fetcher.test_callable({"symbol": symbol})
+    
+    # This returns the exact same DataFrame you were expecting
+    return result.to_df()
