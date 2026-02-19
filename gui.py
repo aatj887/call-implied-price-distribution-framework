@@ -6,6 +6,7 @@ import numpy as np
 import plotly.graph_objects as go
 from scipy.integrate import quad
 from datetime import datetime, timedelta
+from openbb import obb
 
 # --- Path Setup ---
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -26,6 +27,18 @@ except ImportError as e:
     def mixture_pdf(x, a1, b1, a2, b2, q): return 1/(x*0.1*np.sqrt(2*np.pi)) * np.exp(-(np.log(x)-5)**2/(2*0.1**2)) # Dummy LogNormal
 
 st.set_page_config(layout='centered', page_title="Options Implied PDF Analyzer")
+
+# Check if the running environment has already a FRED API key set, if not, display a text input for the user to enter it
+
+if not obb.user.credentials.fred_api_key:
+    st.warning("⚠️ FRED API Key not found!")
+    fred_key = st.text_input("Enter your FRED API Key to proceed:", type="password")
+    if fred_key:
+        obb.user.credentials.fred_api_key = fred_key
+        st.success("API Key set for this session!")
+        st.rerun()
+    else:
+        st.stop() # Halts the app until the key is provided
 
 # --- Helper Functions ---
 def get_expiry_date(days_to_expiry):

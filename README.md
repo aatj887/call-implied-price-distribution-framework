@@ -3,13 +3,6 @@
 This project utilises a variety of Python libraries and packages to generate numerical solutions to the analysis done in the paper 'Probability distributions of future asset prices implied by option prices' by Bhupinder Bahra.
 Link: https://www.bankofengland.co.uk/-/media/boe/files/quarterly-bulletin/1996/probability-distributions-of-future-asset-prices-implied-by-option-prices.pdf
 
-## Objectives
-- Generate simple risk-free rate estimations for any defined timeframe by calculating an established SOFR-based discount factor based on the time to expiration of the options analysed.
-- Generate the implied price distribution of a given asset using the expected return pricing method and the methodology described by the aforementioned paper using scipy.
-- 
-
-
-
 ## Implementation notes
 ### 1. Transforming the objective function
 The paper establishes that the price of a call with strike price $X$ and with years to expiration $T-t$ is equal to the present-discounted expected value of the future payoffs of the call option:
