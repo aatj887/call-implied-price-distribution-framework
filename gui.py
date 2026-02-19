@@ -16,8 +16,8 @@ import plotly.graph_objects as go
 from scipy.integrate import quad
 from datetime import datetime, timedelta
 from openbb import obb
-
-obb.account.sync_pkg_install()
+from openbb_core.app.static.package_builder import PackageBuilder
+PackageBuilder().build()
 
 try:
     from src.data_sources.options_openbb import get_option_chains
