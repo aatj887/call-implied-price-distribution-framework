@@ -1,5 +1,8 @@
 import sys
 import os
+
+os.environ["OPENBB_AUTO_BUILD"] = "false"
+
 import streamlit as st
 import pandas as pd
 import numpy as np
