@@ -2,6 +2,12 @@ import sys
 import os
 
 os.environ["OPENBB_AUTO_BUILD"] = "false"
+os.environ["OPENBB_BUILD_STATIC"] = "false"
+
+# --- Path Setup ---
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
 
 import streamlit as st
 import pandas as pd
@@ -11,12 +17,6 @@ from scipy.integrate import quad
 from datetime import datetime, timedelta
 from openbb import obb
 
-# --- Path Setup ---
-root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if root_path not in sys.path:
-    sys.path.insert(0, root_path)
-
-# Import your custom modules
 try:
     from src.data_sources.options_openbb import get_option_chains
     from src.modelling.minimization import mixture_pdf
@@ -24,10 +24,7 @@ try:
 except ImportError as e:
     # Fallback for demonstration if local modules are missing
     st.error(f"Module Import Error: {e}. Ensure you are running from the project root.")
-    # Dummy functions to allow UI testing without backend
-    def get_option_chains(ticker): return pd.DataFrame({'dte': [7, 30, 60], 'underlying_price': [150.0]*3})
-    def return_optimal_distribution_parameters(t, d): return (0.0, 0.1, 0.0, 0.2, 0.5) # Dummy params
-    def mixture_pdf(x, a1, b1, a2, b2, q): return 1/(x*0.1*np.sqrt(2*np.pi)) * np.exp(-(np.log(x)-5)**2/(2*0.1**2)) # Dummy LogNormal
+
 
 st.set_page_config(layout='centered', page_title="Options Implied PDF Analyzer")
 
