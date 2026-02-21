@@ -1,6 +1,6 @@
 ---
-title: {{call-implied-price-distribution-framework}}
-sdk: {{docker}}
+title: {{"call-implied-price-distribution-framework"}}
+sdk: {{"docker"}}
 app_file: gui.py
 pinned: false
 ---
