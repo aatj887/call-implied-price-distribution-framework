@@ -2,10 +2,17 @@ import sys
 import os
 from pathlib import Path
 
-# Point OpenBB to a writable directory for its lock files and assets
-# This prevents the 'Permission denied' error in site-packages
-os.environ["OPENBB_APPLICATION_PATH"] = "/tmp/openbb_platform/"
-os.environ["OPENBB_USER_SETTINGS_PATH"] = "/tmp/openbb_platform/user_settings.json"
+# 1. Create a writable folder in Streamlit's temporary directory
+temp_openbb_dir = "/tmp/openbb"
+Path(temp_openbb_dir).mkdir(parents=True, exist_ok=True)
+
+# 2. Force OpenBB to use this writable folder instead of site-packages
+os.environ["OPENBB_APPLICATION_PATH"] = temp_openbb_dir
+os.environ["OPENBB_USER_SETTINGS_PATH"] = f"{temp_openbb_dir}/settings.json"
+
+# 3. Disable the background static building
+os.environ["OPENBB_BUILD_STATIC"] = "false"
+os.environ["OPENBB_AUTO_BUILD"] = "false"
 
 import streamlit as st
 import pandas as pd
