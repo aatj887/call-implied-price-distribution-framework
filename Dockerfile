@@ -4,11 +4,10 @@ FROM python:3.11-slim
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies (needed for some OpenBB extensions)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
-    software-properties-common \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -16,9 +15,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- THE FIX ---
-# Run the OpenBB build during the Docker image creation
-# This creates the .build.lock file and static assets in a writable environment
+# Run the OpenBB build during image creation
 RUN python -c "import openbb; openbb.build()"
 
 # Copy the rest of your app code
