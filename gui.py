@@ -7,16 +7,6 @@ from pathlib import Path
 os.environ["OPENBB_APPLICATION_PATH"] = "/tmp/openbb_platform/"
 os.environ["OPENBB_USER_SETTINGS_PATH"] = "/tmp/openbb_platform/user_settings.json"
 
-# --- Path Setup ---
-root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if root_path not in sys.path:
-    sys.path.insert(0, root_path)
-
-# Trigger the build manually once if the path doesn't exist (fixes issues with Streamlit's caching and file system access in certain environments)
-if not Path("/tmp/openbb_platform/").exists():
-    import openbb
-    openbb.build()
-
 import streamlit as st
 import pandas as pd
 import numpy as np
