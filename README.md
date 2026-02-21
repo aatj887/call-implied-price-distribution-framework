@@ -1,3 +1,4 @@
+---
 title: Call Implied Price Distribution Framework
 emoji: 📈
 colorFrom: blue
