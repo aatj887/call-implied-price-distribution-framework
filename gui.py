@@ -21,7 +21,7 @@ st.set_page_config(layout='centered', page_title="Options Implied PDF Analyzer")
 # Check if the running environment has already a FRED API key set, if not, display a text input for the user to enter it
 
 if not obb.user.credentials.fred_api_key:
-    st.warning("⚠️ FRED API Key not found!")
+    st.warning("⚠️ FRED API Key not found! Obtain an API key from https://fredaccount.stlouisfed.org/apikeys for free!")
     fred_key = st.text_input("Enter your FRED API Key to proceed:", type="password")
     if fred_key:
         obb.user.credentials.fred_api_key = fred_key

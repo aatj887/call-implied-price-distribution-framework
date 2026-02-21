@@ -10,6 +10,8 @@ pinned: false
 This project utilises a variety of Python libraries and packages to generate numerical solutions to the analysis done in the paper 'Probability distributions of future asset prices implied by option prices' by Bhupinder Bahra.
 Link: https://www.bankofengland.co.uk/-/media/boe/files/quarterly-bulletin/1996/probability-distributions-of-future-asset-prices-implied-by-option-prices.pdf
 
+A fully working webapp version can be found at https://huggingface.co/spaces/aatj887/call-implied-price-distribution-framework. The code is also available in this repository and can be run locally by following the instructions in the 'Usage' section below.
+
 ## Implementation notes
 ### 1. Transforming the objective function
 The paper establishes that the price of a call with strike price $X$ and with years to expiration $T-t$ is equal to the present-discounted expected value of the future payoffs of the call option:
