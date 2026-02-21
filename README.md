@@ -1,8 +1,6 @@
 ---
 title: {{call-implied-price-distribution-framework}}
 sdk: {{docker}}
-python_version: "{{pythonVersion}}"
-{{/pythonVersion}}
 app_file: gui.py
 pinned: false
 ---
