@@ -35,12 +35,8 @@ which can be expanded as
 
 $$c(X) = e^{-r(T-t)} (\theta \int_X^{\infty} L(\alpha_1, \beta_1; S_T)(S_T-X)dS_T + (1-\theta)\int_X^{\infty}L(\alpha_2, \beta_2; S_T) \cdot (S_T - X)dS_T).$$
 
-And then further reduced using the Black-Scholes Model to
-$$c(X) = e^{-r(T-t)} (\theta (S_0 e^{\alpha_1 + \frac{\beta_1^2}{2}} N(d_1) - X N(d_2)) + (1-\theta)(S_0 e^{\alpha_2 + \frac{\beta_2^2}{2}} N(d_3) - X N(d_4))),$$
+This last equation can be represented using the Black-Scholes formula for call options, which has a closed-form solution. This makes it possible to rewrite the price of a call as an arithmetic expression rather than an integral, which is much faster to compute in Python.
 
-where $d_1 = \frac{\ln(\frac{S_0 e^{\alpha_1 + \frac{\beta_1^2}{2}}}{X})}{\beta_1}$, $d_2 = d_1 - \beta_1$, $d_3 = \frac{\ln(\frac{S_0 e^{\alpha_2 + \frac{\beta_2^2}{2}}}{X})}{\beta_2}$ and $d_4 = d_3 - \beta_2$.
-
-This last function is the one that is implemented in the code, which is much faster to compute and allows for a more efficient optimization process.
 
 ### 2. Optimization process
 The optimization process is done using scipy.optimize.minimize, which is a general-purpose optimization function that allows for the minimization of a given objective function. The objective function is defined as:
