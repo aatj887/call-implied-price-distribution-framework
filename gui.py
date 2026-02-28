@@ -2,10 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import os
 from scipy.integrate import quad
 from datetime import datetime, timedelta
 from openbb import obb
 
+obb.user.credentials.fred_api_key = os.environ['FRED_API_KEY'] if 'FRED_API_KEY' in os.environ else None
 
 try:
     from src.data_sources.options_openbb import get_option_chains
@@ -37,7 +39,7 @@ def get_expiry_date(days_to_expiry):
     return target_date.strftime("%Y-%m-%d")
 
 # --- 1. Header & Data Ingestion Section ---
-st.title('Options-Implied Price Distribution')
+st.title('Option-Implied Price Distribution')
 st.header('A WebApp to Analyze Implied Future Price Distributions from Option Chains')
 st.markdown("""
 This application is based on the minimization framework outlined in the paper 'Probability distributions of future asset prices implied by
