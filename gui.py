@@ -40,7 +40,7 @@ def get_expiry_date(days_to_expiry):
 
 # --- 1. Header & Data Ingestion Section ---
 st.title('Option-Implied Price Distribution')
-st.header('A WebApp to Analyze Implied Future Price Distributions from Option Chains')
+st.header('A WebApp used to analyze implied future price distributions from option chains')
 st.markdown("""
 This application is based on the minimization framework outlined in the paper 'Probability distributions of future asset prices implied by
 option prices' by Bhupinder Bahra.
