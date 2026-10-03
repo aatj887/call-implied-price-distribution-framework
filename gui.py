@@ -2,41 +2,19 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-import os
 from scipy.integrate import quad
-from datetime import datetime, timedelta
-from openbb import obb
-
-obb.user.credentials.fred_api_key = os.environ['FRED_API_KEY'] if 'FRED_API_KEY' in os.environ else None
 
 try:
-    from src.data_sources.options_openbb import get_option_chains
+    from src.data_sources.cboe import get_option_chains
+    from src.data_sources.risk_free import risk_free_value
     from src.modelling.minimization import mixture_pdf
-    from scripts.run_build_pdf import return_optimal_distribution_parameters
+    from scripts.run_build_pdf import fit_distribution
 except ImportError as e:
     # Fallback for demonstration if local modules are missing
     st.error(f"Module Import Error: {e}. Ensure you are running from the project root.")
 
 
 st.set_page_config(layout='centered', page_title="Options Implied PDF Analyzer")
-
-# Check if the running environment has already a FRED API key set, if not, display a text input for the user to enter it
-
-if not obb.user.credentials.fred_api_key:
-    st.warning("⚠️ FRED API Key not found! Obtain an API key from https://fredaccount.stlouisfed.org/apikeys for free!")
-    fred_key = st.text_input("Enter your FRED API Key to proceed:", type="password")
-    if fred_key:
-        obb.user.credentials.fred_api_key = fred_key
-        st.success("API Key set for this session!")
-        st.rerun()
-    else:
-        st.stop() # Halts the app until the key is provided
-
-# --- Helper Functions ---
-def get_expiry_date(days_to_expiry):
-    """Calculates target date from DTE."""
-    target_date = datetime.now() + timedelta(days=int(days_to_expiry))
-    return target_date.strftime("%Y-%m-%d")
 
 # --- 1. Header & Data Ingestion Section ---
 st.title('Option-Implied Price Distribution')
@@ -81,8 +59,9 @@ if 'chain_data' in st.session_state:
     st.subheader(f"1. Select Expiry of Options for {st.session_state['ticker']} (Current Price: {current_spot:.2f})")
     
     # Create friendly labels for the dropdown (DTE + Date)
-    unique_dtes = sorted(df['dte'].unique())
-    dte_options = {dte: f"{dte} Days ({get_expiry_date(dte)})" for dte in unique_dtes}
+    expiries = df.drop_duplicates('dte').set_index('dte')['expiration'].sort_index()
+    unique_dtes = expiries.index.tolist()
+    dte_options = {dte: f"{dte} Days ({expiry})" for dte, expiry in expiries.items()}
     
     selected_dte = st.selectbox(
         "Choose Expiration:", 
@@ -95,7 +74,7 @@ if 'chain_data' in st.session_state:
         with st.spinner('Optimizing Mixture Model...'):
             try:
                 # Run optimization
-                params = return_optimal_distribution_parameters(st.session_state['ticker'], selected_dte)
+                params = fit_distribution(df, risk_free_value(), selected_dte)
                 st.session_state['params'] = params
                 st.session_state['selected_dte'] = selected_dte
                 st.success("Model Fitted Successfully")

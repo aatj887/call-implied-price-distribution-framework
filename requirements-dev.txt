@@ -1,0 +1,7 @@
+-r requirements.txt
+yfinance==0.2.66
+duckdb
+huggingface_hub
+pytest
+ruff==0.13.3
+jupyter

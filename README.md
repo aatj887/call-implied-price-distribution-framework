@@ -45,7 +45,7 @@ $$\min_{\alpha_1,\alpha_2,\beta_1,\beta_2,\theta} \sum_{i=1}^{n}[c(X_i) - \hat{c
 
 
 ## Usage
-The code has a working UI implemented in Streamlit, which allows the user to calculate the implied price distribution of a given asset by inputting an API key for FRED (which is free to obtain at https://fred.stlouisfed.org/), the ticker of the asset and any of the available days to expiration of the option chain data The UI also allows the user to input the strike prices and the corresponding call and put prices of the options analysed.
+The code has a working UI implemented in Streamlit, which allows the user to calculate the implied price distribution of a given asset by inputting the ticker of the asset and any of the available days to expiration of the option chain data. No API keys are needed.
 
 Although the UI is hosted currently on Streamlit, the code is modularized and can be easily adapted to be used inside a Python or Jupyter Notebook environment (see the 'notebooks' folder for an example of how to do this).
 
@@ -56,7 +56,9 @@ You can also run the UI by running the following command in the terminal:
 You will need to install the required libraries and packages first, which can be done by running 'pip install -r requirements.txt' in the terminal.
 
 ## Data
-The data used in the code is obtained from the FRED API, which provides a wide range of economic data, including interest rates and asset prices. The code uses the SOFR (Secured Overnight Financing Rate) as the risk-free rate, which is obtained from the FRED API using the 'SOFR' ticker. The code also uses the asset price data obtained from YFinance through the OpenBB library, which is a Python library that simplifies the access to financial data from sources like Yahoo Finance, Alpha Vantage, and others.
+- **Option chains:** CBOE's free, 15-minute delayed quotes (the same source OpenBB's default `cboe` provider used), fetched directly in `src/data_sources/cboe.py`. Indices such as SPX or VIX are supported.
+- **Risk-free rate:** SOFR (Secured Overnight Financing Rate) from FRED's public CSV download, so no FRED API key is required (`src/data_sources/risk_free.py`).
+- **Underlying prices:** Yahoo Finance via `yfinance` (`src/data_sources/prices.py`), used for unadjusted and adjusted closes in notebooks and backtests (`pip install -r requirements-dev.txt`).
 
 ## Important remarks
 - The code is not intended to be used for trading or investment purposes, but rather as a tool for educational and research purposes to understand the methodology described in the paper and to generate the implied price distribution of a given asset based on the option prices.
