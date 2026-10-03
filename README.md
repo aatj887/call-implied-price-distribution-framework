@@ -60,6 +60,29 @@ You will need to install the required libraries and packages first, which can be
 - **Risk-free rate:** SOFR (Secured Overnight Financing Rate) from FRED's public CSV download, so no FRED API key is required (`src/data_sources/risk_free.py`).
 - **Underlying prices:** Yahoo Finance via `yfinance` (`src/data_sources/prices.py`), used for unadjusted and adjusted closes in notebooks and backtests (`pip install -r requirements-dev.txt`).
 
+### Option chain archive (for backtesting)
+After each trading day, `collector/snapshot.py` stores a full option-chain snapshot for the symbols in `collector/watchlist.toml` (core ETFs and indices) plus every current S&P 500 member (`include_sp500 = true`, list from [datasets/s-and-p-500-companies](https://github.com/datasets/s-and-p-500-companies)). The GitHub Actions workflow `.github/workflows/snapshot.yml` runs it, and the snapshots go to a **private** Hugging Face Dataset with one Parquet file per table and day:
+
+| Path | Content |
+|---|---|
+| `chains/date=YYYY-MM-DD/part-*.parquet` | every contract of every symbol (`underlying_symbol` column) |
+| `underlying/date=YYYY-MM-DD/part-*.parquet` | one row per symbol: spot, OHLC, volume, IV30 |
+| `rates/sofr/date=YYYY-MM-DD.parquet` | latest SOFR observation |
+| `universe/date=YYYY-MM-DD.parquet` | S&P 500 members that day, to avoid survivorship bias in backtests |
+
+The dataset is private because CBOE's website terms do not allow redistributing its quotes. A second scheduled run only fetches symbols that are missing for the day.
+
+Setup: create a Hugging Face write token and add it to the GitHub repository as the `HF_TOKEN` secret. Optionally set the `HF_DATASET_REPO` variable (default `aatj887/option-chain-snapshots`). You can test locally with `python -m collector.snapshot --dry-run --out ./tmp_snap --allow-stale` (add `--symbols SPY QQQ` for a quick run).
+
+Note that GitHub disables scheduled workflows in public repositories after 60 days without repository activity. Re-enable it from the Actions tab if that happens.
+
+Query the archive with DuckDB (`hf auth login` first, since the dataset is private):
+```sql
+SELECT date, expiration, strike, option_type, bid, ask
+FROM read_parquet('hf://datasets/aatj887/option-chain-snapshots/chains/*/*.parquet', hive_partitioning = true)
+WHERE underlying_symbol = 'SPY' AND dte = 30;
+```
+
 ## Important remarks
 - The code is not intended to be used for trading or investment purposes, but rather as a tool for educational and research purposes to understand the methodology described in the paper and to generate the implied price distribution of a given asset based on the option prices.
 - The code is not optimized for performance and may take a long time to run, especially for large datasets or for a large number of options analysed. The optimization process can be computationally intensive, and the code is not intended to be used for real-time analysis or for large-scale applications without further optimization and improvements.

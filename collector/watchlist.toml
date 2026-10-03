@@ -1,0 +1,14 @@
+# Symbols snapshotted by collector/snapshot.py every trading day.
+# Indices (SPX, VIX, NDX, RUT...) are written without the CBOE underscore prefix.
+symbols = [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "DIA",
+    "SPX",
+    "NDX",
+    "VIX",
+]
+
+# Also snapshot every current S&P 500 member (list refreshed on each run, see collector/universe.py)
+include_sp500 = true

@@ -1,0 +1,46 @@
+name: Option chain snapshot
+
+on:
+  schedule:
+    # 21:30 UTC is after the 16:00 ET close in both EDT and EST; the second run is a backup
+    # in case GitHub delays or drops the first (the collector skips files already stored).
+    - cron: "30 21 * * 1-5"
+    - cron: "0 23 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      symbols:
+        description: "Space-separated symbols (empty = watchlist)"
+        required: false
+        default: ""
+
+concurrency:
+  group: option-chain-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-collector.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-collector.txt
+
+      - name: Snapshot and upload
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+          SYMBOLS: ${{ github.event.inputs.symbols }}
+        run: |
+          if [ -n "$SYMBOLS" ]; then
+            python -m collector.snapshot --symbols $SYMBOLS
+          else
+            python -m collector.snapshot
+          fi
