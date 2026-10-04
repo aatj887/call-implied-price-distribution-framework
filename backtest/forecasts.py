@@ -209,6 +209,13 @@ class Archive:
                 frames.append(pd.read_parquet(f, **kwargs))
         return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
+    def files(self, pattern: str) -> list[str]:
+        return self._glob(pattern)
+
+    def read_file(self, path: str, **kwargs) -> pd.DataFrame:
+        with self._open(path) as f:
+            return pd.read_parquet(f, **kwargs)
+
     def exists(self, path: str) -> bool:
         return bool(self._glob(path))
 

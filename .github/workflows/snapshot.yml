@@ -52,3 +52,11 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
         run: python -m backtest.forecasts
+
+      # Records the settlement price of forecasts whose expiry has passed
+      - name: Backtest outcomes
+        if: github.event.inputs.symbols == ''
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+        run: python -m backtest.outcomes
