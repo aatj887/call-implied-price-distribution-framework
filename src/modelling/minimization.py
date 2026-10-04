@@ -41,7 +41,7 @@ def _call_lognormal(X, r, tau, a, b):
 
     if b < 1e-10:
         F = np.exp(a)
-        return np.exp(-r*tau) * max(F - X, 0.0)
+        return np.exp(-r*tau) * np.maximum(F - X, 0.0)
 
     d1 = (a - np.log(X) + b*b) / b
     d2 = d1 - b
@@ -89,18 +89,17 @@ def objective_from_chain(theta, chain, r):
     S0  = chain['underlying_price'].iloc[0]
     S_forward = S0 * np.exp(r * tau)
 
-    error = 0.0
+    # Vectorised over the whole chain: a row-by-row loop made one fit take minutes
+    X = chain['strike'].to_numpy(dtype=float)
+    market_price = 0.5 * (chain['bid'].to_numpy(dtype=float) + chain['ask'].to_numpy(dtype=float))
+    is_call = chain['option_type'].str.lower().to_numpy() == 'call'
 
-    for _, row in chain.iterrows():
-        X = row['strike']
-        market_price = 0.5 * (row['bid'] + row['ask'])
-
-        if row['option_type'].lower() == 'call':
-            model_price = call_price_model(X, r, tau, a1, b1, a2, b2, q)
-        else:
-            model_price = put_price_model(X, r, tau, a1, b1, a2, b2, q, S0)
-
-        error += (model_price - market_price)**2
+    model_price = np.where(
+        is_call,
+        call_price_model(X, r, tau, a1, b1, a2, b2, q),
+        put_price_model(X, r, tau, a1, b1, a2, b2, q, S0),
+    )
+    error = np.sum((model_price - market_price)**2)
 
     mean_err = (implied_mean(a1, b1, a2, b2, q) - S_forward)**2
 

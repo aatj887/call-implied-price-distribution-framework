@@ -44,3 +44,11 @@ jobs:
           else
             python -m collector.snapshot
           fi
+
+      # Fits the implied distributions for any expiry whose forecast date is now in the archive
+      - name: Backtest forecasts
+        if: github.event.inputs.symbols == ''
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+        run: python -m backtest.forecasts
