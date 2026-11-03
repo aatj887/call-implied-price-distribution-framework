@@ -3,11 +3,11 @@ import yfinance as yf
 
 def get_price_history(ticker:str, start_date: str, end_date: str) -> pd.DataFrame:
     """
-    Get unadjusted and adjusted daily closes, dividends and splits for a ticker from Yahoo Finance.
+    Get daily closes, dividends and splits for a ticker from Yahoo Finance.
 
-    Use 'close' to score implied distributions at expiry (option payoffs settle on the unadjusted price)
-    and 'adj_close' for return series. Yahoo restates 'adj_close' after every dividend or split,
-    so download it when needed instead of archiving it.
+    'close' is split-adjusted but not dividend-adjusted (price returns, as options settle on);
+    'adj_close' is adjusted for both (total returns). Yahoo restates both after every split, so
+    compare prices within one download (e.g. a ratio of two closes) instead of archiving them.
 
     Parameters:
     - ticker (str): The ticker symbol for the asset.

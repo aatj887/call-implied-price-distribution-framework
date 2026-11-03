@@ -83,6 +83,29 @@ FROM read_parquet('hf://datasets/aatj887/option-chain-snapshots/chains/*/*.parqu
 WHERE underlying_symbol = 'SPY' AND dte = 30;
 ```
 
+### Backtest forecasts
+`backtest/forecasts.py` turns the archive into a forecast table, one file per expiry under `forecasts/<track>/<expiry>.parquet` in the same dataset. It runs after the collector in the same workflow and only fits expiries that do not have a file yet.
+
+| Track | Expiries | Forecast taken | Symbols |
+|---|---|---|---|
+| `monthly30` | third Friday of each month | last snapshot at least 30 days before expiry (at most 35) | SPY, QQQ, IWM, DIA + S&P 500 members on that date |
+| `weekly7` | every Friday | last snapshot at least 7 days before expiry (at most 9) | SPY, QQQ, IWM, DIA |
+
+Taking a single forecast per expiry keeps the observations from overlapping. If the Friday is a market holiday the Thursday expiry is used.
+
+Each row holds the fitted parameters `a1, b1, a2, b2, q` (so any probability can be recomputed later), a single-lognormal fit on the same quotes (`ln_a, ln_b`) to compare against, fit diagnostics (`n_quotes`, `n_strikes`, `rmse`, `rmse_ln`, `converged`, `status`) and headline numbers: `p_up` / `p_up_ln` (probability of ending above today's price) and the 10/50/90% price levels `q10, q50, q90`. Symbols with fewer than 8 usable strikes get `status = too_few_strikes` and no fit.
+
+Run it on a local snapshot folder with `python -m backtest.forecasts --data ./tmp_snap`.
+
+`backtest/outcomes.py` (also in the workflow) fills in `outcomes/<track>/<expiry>.parquet` the day after each expiry: the settlement close from Yahoo Finance in the same units as the forecast (splits handled through the ratio of Yahoo's closes on both dates), the realised price return and `earnings_in_window` for stocks.
+
+`python -m backtest.score [--out report.md]` joins both tables and prints a plain-language report per track, also split into ETFs, stocks and stocks with or without earnings in the window:
+1. **Chance of ending higher:** forecasts grouped by their stated probability against how often the price did end higher.
+2. **Where prices landed inside the forecast:** each tenth of the forecast distribution should catch about 10% of outcomes, and the 10-90% range about 80%.
+3. **Mixture vs bell curve:** log score of the two-lognormal mixture against the single lognormal fitted on the same quotes, averaged per expiry because stocks move together.
+
+Option prices carry risk premia (investors pay up for crash protection), so expect the forecasts to overstate downside tails rather than come out perfectly calibrated. Measuring by how much is one of the results.
+
 ## Important remarks
 - The code is not intended to be used for trading or investment purposes, but rather as a tool for educational and research purposes to understand the methodology described in the paper and to generate the implied price distribution of a given asset based on the option prices.
 - The code is not optimized for performance and may take a long time to run, especially for large datasets or for a large number of options analysed. The optimization process can be computationally intensive, and the code is not intended to be used for real-time analysis or for large-scale applications without further optimization and improvements.

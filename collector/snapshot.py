@@ -182,6 +182,10 @@ def main(argv: list[str] | None = None) -> int:
     chains, underlyings, failed = fetch_all(todo, session, args.workers, {REFERENCE_SYMBOL: reference})
     log.info("Fetched %d/%d symbols in %.0fs.", len(chains), len(todo), time.time() - started)
     if not chains:
+        # On a backup run the leftovers are usually symbols that fail every day (stale or missing chains)
+        if done:
+            log.warning("Nothing new to store; %d symbols still failing: %s", len(failed), failed)
+            return 0
         return 1
 
     snapshot_ts = datetime.now(timezone.utc)
